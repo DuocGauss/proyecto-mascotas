@@ -45,31 +45,6 @@
                 
                 {% if user.is_authenticated %}
                     <ul class="navbar-nav ml-auto">
-                        {% if user.is_staff %}
-                            <!-- Botón Administración con elementos desplegables -->
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    Administración
-                                </a>
-                                <div class="dropdown-menu" aria-labelledby="navbarDropdown" style="background-color: rgb(178, 29, 29);">
-                                    <a class="dropdown-item c" href="#">Gestión Vehiculos</a>
-                                    <a class="dropdown-item c" href="#">Agregar Compañías</a>
-                                    <a class="dropdown-item c" href="#">Registrar usuario</a>
-                                </div>
-                            </li>
-                        {% endif %}
-                        <!-- Botón Mantenciones con elementos desplegables -->
-                        {% if not user.is_superuser %}
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="mantencionesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    Mantenciones
-                                </a>
-                                <div class="dropdown-menu" aria-labelledby="mantencionesDropdown" style="background-color: rgb(178, 29, 29);">
-                                    <a class="dropdown-item c" href="#">Historial de mantenciones</a>
-                                    <a class="dropdown-item c" href="#">Revisiones Diarias</a>
-                                </div>
-                            </li>
-                        {% endif %}
                         <!-- Elementos de menú a la derecha -->
                         <li class="nav-item">
                             <a class="nav-link" href="#">Mensajes</a>
@@ -78,13 +53,16 @@
                             <a class="nav-link" href="#">Perfil</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#" >Cerrar Sesión</a>
+                            <a class="nav-link" href="#" onclick="confirmLogout()" >Cerrar Sesión</a>
                         </li>
                     </ul>
                 {% else %}
                     <ul class="navbar-nav ml-auto">
                         <li class="nav-item">
-                            <a class="nav-link" href="#">Iniciar sesión</a>
+                            <a class="nav-link" href="{% url "registro" %}">Registrarse</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url "login_custom" %}">Iniciar sesión</a>
                         </li>
                     </ul>
                 {% endif %}
@@ -109,7 +87,23 @@
       </footer>
     </div>
  <!-- JavaScript para la confirmación de cierre de sesión -->
- 
+ <script>
+    function confirmLogout() {
+        Swal.fire({
+            title: '¿Cerrar Sesión?',
+            text: '¿Estás seguro de que deseas cerrar sesión?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sí',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: 'Red'
+        }).then(function (result) {
+            if (result.isConfirmed) {
+                window.location.href = "{% url 'logout_custom' %}";
+            }
+        });
+    }
+</script>
 
 </body>
 </html>
