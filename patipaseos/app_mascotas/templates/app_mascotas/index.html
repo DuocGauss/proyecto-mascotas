@@ -1,0 +1,34 @@
+{% extends "app_mascotas/base.html" %}
+{% load static %}
+{% block title %}Página de Inicio{% endblock %}
+
+{% block content %}
+
+{% if messages %}
+    {% for msg in messages %}
+        <script>
+            Swal.fire({
+                title: 'Exito!',
+                text: '{{msg}}',
+                icon: 'success',
+                confirmButtonText: 'Aceptar',
+                confirmButtonColor: 'Green'
+            }) 
+        </script>
+    {% endfor %}
+{% endif %}
+
+
+
+  
+    <div class="col-md-12">
+        <h1>Bienvenido!</h1>
+        <p><strong>Pagina en construcción</strong></p>
+        
+        
+</div>
+</div>
+
+
+
+{% endblock %}
