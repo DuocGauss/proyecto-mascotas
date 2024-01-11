@@ -1,0 +1,69 @@
+{% extends "app_mascotas/base.html" %}
+{% load static %}
+
+{% block title %}Perfil del Usuario{% endblock %}
+
+{% block content %}
+
+{% if messages %}
+
+    {% for msg in messages %}
+       <script>
+           Swal.fire({
+           title: 'Exito!',
+           text: '{{msg}}',
+           icon: 'success',
+           confirmButtonText: 'Aceptar',
+           confirmButtonColor: 'Green'
+           }) 
+       </script>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6 mx-auto py-4">
+            <div class="card">
+                <div class="card-header">
+                    <h1>Datos personales</h1>
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered">
+                        <tbody>
+                          <tr>
+                              <th style="color:white;">ID</th>
+                              <td style="color:white;">{{data.id}}</td>
+                          </tr>
+                            <tr>
+                                <th >Nombre de usuario</th>
+                                <td >{{data.username}}</td>
+                            </tr>
+                            <tr>
+                                <th >Nombre completo</th>
+                                <td >{{data.first_name}} {{data.last_name}}</td>
+                            </tr>
+                            <tr>
+                                <th>Email</th>
+                                <td>{{data.email}}</td>
+                            </tr>
+                            {% if cuidador_data %} 
+                            <tr>
+                                <th>Especialización</th>
+                                <td>{{cuidador_data.especializacion}}</td>
+                            </tr>
+                            {% endif %} 
+                        </tbody>
+                    </table>
+                  </div> 
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock %}
+
+

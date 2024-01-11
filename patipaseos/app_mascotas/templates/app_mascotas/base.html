@@ -46,11 +46,16 @@
                 {% if user.is_authenticated %}
                     <ul class="navbar-nav ml-auto">
                         <!-- Elementos de menú a la derecha -->
+                    {% if not user.es_cuidador %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url "cuidador" %}">Quieres convertirte en cuidador? Haz click aqui!</a>
+                        </li>
+                    {% endif %}
                         <li class="nav-item">
                             <a class="nav-link" href="#">Mensajes</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#">Perfil</a>
+                            <a class="nav-link" href="{% url "perfil" %}">Perfil</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="#" onclick="confirmLogout()" >Cerrar Sesión</a>
