@@ -1,15 +1,64 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.utils import timezone
 
 # Create your models here.
 
 
 class Propietario(AbstractUser):
     # Agregar un campo de rol
+    rut = models.CharField(max_length=20, unique=True, default="")
+    direccion = models.CharField(max_length=255, default="")
+    imagen = models.ImageField(upload_to="imgprod", null=True)
     es_cuidador = models.BooleanField(default=False)
+    telefono = models.CharField(max_length=15, blank=True, null=True)
     
     
 class Cuidador(models.Model):
     propietario = models.OneToOneField(Propietario, on_delete=models.CASCADE)
     id_cuidador = models.AutoField(primary_key=True)
-    especializacion = models.CharField(max_length=50)
+    especializacion = models.CharField(max_length=50 ,default="")
+    experiencia = models.TextField(default="")
+    disponibilidad = models.CharField(max_length=50, default="Disponible")
+    
+    def __str__(self):
+        return f"{self.id_cuidador} - {self.propietario.username} - {self.especializacion} - {self.disponibilidad}"
+    
+    
+class Servicio(models.Model):
+    id_servicio = models.AutoField(primary_key=True)
+    tipo_servicio = models.CharField(max_length=100)
+    descripcion = models.TextField()
+    precio = models.IntegerField()
+    cuidador = models.ForeignKey(Cuidador, on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return f"{self.id_servicio} -{self.tipo_servicio} - {self.cuidador.propietario.username}"
+    
+    
+class Mascota(models.Model):
+    id_mascota = models.AutoField(primary_key=True)
+    nombre_mascota = models.CharField(max_length=100)
+    tipo_mascota = models.CharField(max_length=50)
+    tamaño_mascota = models.CharField(max_length=50)
+    raza_mascota = models.CharField(max_length=50, blank=True, null=True)
+    imagen = models.ImageField(upload_to="imgprod", null=True)
+    propietario = models.ForeignKey(Propietario, on_delete=models.CASCADE, related_name='mascotas')
+
+    def __str__(self):
+        return self.nombre_mascota
+    
+    
+
+class DetPrestacion(models.Model):
+    fecha_prestacion = models.DateField(default=timezone.now)
+    valor_total = models.DecimalField(max_digits=9, decimal_places=2)
+    estado = models.CharField(max_length=50, default="Pendiente")
+    id_servicio = models.ForeignKey(Servicio, on_delete=models.CASCADE)
+    id_propietario = models.ForeignKey(Propietario, on_delete=models.CASCADE)
+    id_cuidador = models.ForeignKey(Cuidador, on_delete=models.CASCADE)
+    id_mascota = models.ForeignKey(Mascota, on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return f"{self.fecha_prestacion} - {self.valor_total} - {self.id_servicio}"
+    

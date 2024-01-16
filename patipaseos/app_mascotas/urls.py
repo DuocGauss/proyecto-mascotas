@@ -12,4 +12,13 @@ urlpatterns = [
     path('logout_custom/', views.logout_custom, name='logout_custom'),
     path('cuidador/', views.cuidador, name='cuidador'),
     path('perfil/', views.perfil, name='perfil'),
+    path('editar_perfil/<int:id>',views.editar_perfil, name='editar_perfil'),
+    path('servicio/',views.servicio,name="servicio"),
+    path('perfil_servicio/<int:id_servicio>/', views.perfil_servicio, name='perfil_servicio'),
+    path('eliminar_servicio/<int:id>',views.eliminar_servicio,name="eliminar_servicio"),
+    path('mod_servicio/<int:id_servicio>',views.modificar_servicio,name="modificar_servicio"),
+    path('eliminar_mascota/<int:id>',views.eliminar_mascota,name="eliminar_mascota"),
+    path('mod_mascota/<int:id_mascota>',views.modificar_mascota,name="modificar_mascota"),
+    path('detalle_prestacion/<int:id_servicio>/', views.detalle_prestacion, name='detalle_prestacion'),
+    path('prestacion/',views.prestacion,name="prestacion"),
 ]

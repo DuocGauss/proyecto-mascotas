@@ -42,7 +42,11 @@
                 <ul class="navbar-nav mr-auto">
                     <!-- ... (Otras opciones de menú) ... -->
                 </ul>
-                
+                <form method="get" action="{% url 'index' %}" class="form-inline my-2 my-lg-0">
+                    <input class="form-control mr-sm-2" name="q" type="search" placeholder="Buscar" aria-label="Buscar">
+                    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Buscar</button>
+                  </form>
+ 
                 {% if user.is_authenticated %}
                     <ul class="navbar-nav ml-auto">
                         <!-- Elementos de menú a la derecha -->
@@ -51,14 +55,20 @@
                             <a class="nav-link" href="{% url "cuidador" %}">Quieres convertirte en cuidador? Haz click aqui!</a>
                         </li>
                     {% endif %}
+                    {% if user.es_cuidador %}
                         <li class="nav-item">
-                            <a class="nav-link" href="#">Mensajes</a>
+                            <a class="nav-link" href="{% url "servicio" %}"><i class="fas fa-solid fa-plus"></i></a>
+                        </li>
+                    {% endif %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url "prestacion" %}"><i class="fas fa-solid fa-dog"></i></a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url "perfil" %}">Perfil</a>
+                            <a class="nav-link" href="{% url "perfil" %}"><i class="fas fa-solid fa-user"></i></a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#" onclick="confirmLogout()" >Cerrar Sesión</a>
+                            <a class="nav-link" href="#" onclick="confirmLogout()" ><i class="fas fa-sign-out-alt"></i>
+                            </a>
                         </li>
                     </ul>
                 {% else %}
@@ -72,7 +82,7 @@
                     </ul>
                 {% endif %}
             </div>
-        </nav>        
+        </nav>      
     </header>
     <main class="contenido-principal">
         <div id="content-wrap">
