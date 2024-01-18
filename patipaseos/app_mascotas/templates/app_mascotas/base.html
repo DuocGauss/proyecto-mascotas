@@ -13,76 +13,111 @@
     <!-- Popper.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
 
+    <!--Import materialize.css-->
+    <link type="text/css" rel="stylesheet" href="{% static "app_mascotas/css/materialize.min.css" %}"  media="screen,projection"/>
+    
+
+    <!--Import Google Icon Font-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
     <!-- Latest compiled JavaScript -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
     <!-- DateRangePicker -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
-
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
     <title>{% block title %}Sitio Web{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'app_mascotas/css/estilo.css' %}">
+    <link rel="stylesheet" href="{% static 'app_mascotas/css/style.css' %}">
+
+
 
 </head>
 <body>
     <header>
         
-        <nav class="navbar navbar-expand-lg navbar-dark">
+        <nav class="navbar navbar-expand-lg navbar-dark light-blue" role="navigation">
             <a class="navbar-brand" href="{% url 'index' %}"><h1>Pati<strong>Paseos</strong></h1></a>
             <!-- Botón para pantallas pequeñas -->
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo03" aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
         
-            <!-- Menú de Navegación -->
-            <div class="collapse navbar-collapse" id="navbarTogglerDemo03">
-                <ul class="navbar-nav mr-auto">
-                    <!-- ... (Otras opciones de menú) ... -->
-                </ul>
-                <form method="get" action="{% url 'index' %}" class="form-inline my-2 my-lg-0">
-                    <input class="form-control mr-sm-2" name="q" type="search" placeholder="Buscar" aria-label="Buscar">
-                    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Buscar</button>
-                  </form>
- 
+            <!-- Menú de Navegación con Materialize -->
+            <div class="nav-wrapper">
+                <form method="get" action="{% url 'index' %}">
+                    <div class="input-field">
+                        <input id="search" type="search" name="q" placeholder="Buscar" aria-label="Buscar" required>
+                        <label class="label-icon" for="search">
+                            <i class="material-icons">search</i>
+                        </label>
+                        <i class="material-icons">close</i>
+                    </div>
+                </form>
+            </div>
+
                 {% if user.is_authenticated %}
-                    <ul class="navbar-nav ml-auto">
+                <ul class="right hide-on-med-and-down">
                         <!-- Elementos de menú a la derecha -->
                     {% if not user.es_cuidador %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url "cuidador" %}">Quieres convertirte en cuidador? Haz click aqui!</a>
+                        <li >
+                            <a href="{% url "cuidador" %}">Convertirse en cuidador</a>
                         </li>
                     {% endif %}
                     {% if user.es_cuidador %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url "servicio" %}"><i class="fas fa-solid fa-plus"></i></a>
-                        </li>
+                        <li><a href="{% url 'servicio' %}"><i class="material-icons left">add_box</i>Publicar servicio</a></li>
                     {% endif %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url "prestacion" %}"><i class="fas fa-solid fa-dog"></i></a>
+                        <li>
+                            <a href="{% url "prestacion" %}">Solicitudes<i class="material-icons left">pets</i></a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url "perfil" %}"><i class="fas fa-solid fa-user"></i></a>
+                        <li><a href="{% url 'inbox' %}"><i class="material-icons left">message</i>Mensajes<span class="new badge">{{ count_notifications }}</span></a></li>
+                        <li><a href="{% url "perfil" %}"><i class="material-icons left">person</i>Perfil</a></li>
+                        <li>
+                            <a href="#" onclick="confirmLogout()" ><i class="material-icons left">exit_to_app</i>Salir</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" onclick="confirmLogout()" ><i class="fas fa-sign-out-alt"></i>
-                            </a>
-                        </li>
+                        <!--<li><a href="#" data-target="slide-out" class="sidenav-trigger show-on-large"><i class="material-icons left">person</i>boton</a></li> -->
                     </ul>
                 {% else %}
                     <ul class="navbar-nav ml-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url "registro" %}">Registrarse</a>
+                        <li>
+                            <a href="{% url "registro" %}">Registrarse</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url "login_custom" %}">Iniciar sesión</a>
+                        <li >
+                            <a href="{% url "login_custom" %}">Iniciar sesión</a>
                         </li>
                     </ul>
                 {% endif %}
             </div>
-        </nav>      
+        </nav>
+<!--       
+        <ul id="slide-out" class="sidenav">
+            <li><div class="user-view">
+              <div class="background">
+              </div>
+              <a href="#user">
+              </a>
+              <a href="#name"><span class="white-text name">{{ user.first_name }} {{ user.last_name }}</span></a>
+              <a href="#email"><span class="white-text email">{{ user.email }}</span></a>
+            </div></li>
+            <li><a href="#"><i class="material-icons">star</i>{{ fans }}     Fans</a></li>
+            <li><a href="#"><i class="material-icons">people</i>{{ follows }}     Following</a></li>
+            <li><div class="divider"></div></li>
+            <li><a class="subheader">Me</a></li>
+            <li><a href="{% url 'perfil' %}"><i class="material-icons">person</i>My profile</a></li>
+            <li><a href="#"><i class="material-icons">bookmarks</i>Bookmarks</a></li>
+            <li><a href="#"><i class="material-icons">list</i>Lists</a></li>
+            <li><div class="divider"></div></li>
+            <li><a class="subheader">Payments</a></li>
+            <li><a href="#!"><i class="material-icons">credit_card</i>Your cards</a></li>
+            <li><a href="#!"><i class="material-icons">account_balance</i>Your Bank</a></li>
+            <li><div class="divider"></div></li>
+          </ul>
+--> 
+
     </header>
     <main class="contenido-principal">
         <div id="content-wrap">
@@ -95,12 +130,48 @@
 
         <!-- Pie de página común -->
          <!-- Footer -->
-        </div>
-      <footer>
-          <p></p>
-          <p></p>
-      </footer>
-    </div>
+         <footer class="page-footer orange">
+            <div class="container">
+              <div class="row">
+                <div class="col l6 s12">
+                  <h5 class="white-text">Company Bio</h5>
+                  <p class="grey-text text-lighten-4">We are a team of college students working on this project like it's our full time job. Any amount would help support and continue development on this project and is greatly appreciated.</p>
+        
+        
+                </div>
+                <div class="col l3 s12">
+                  <h5 class="white-text">Settings</h5>
+                  <ul>
+                    <li><a class="white-text" href="#!">Link 1</a></li>
+                    <li><a class="white-text" href="#!">Link 2</a></li>
+                    <li><a class="white-text" href="#!">Link 3</a></li>
+                    <li><a class="white-text" href="#!">Link 4</a></li>
+                  </ul>
+                </div>
+                <div class="col l3 s12">
+                  <h5 class="white-text">Connect</h5>
+                  <ul>
+                    <li><a class="white-text" href="#!">Link 1</a></li>
+                    <li><a class="white-text" href="#!">Link 2</a></li>
+                    <li><a class="white-text" href="#!">Link 3</a></li>
+                    <li><a class="white-text" href="#!">Link 4</a></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="footer-copyright">
+              <div class="container">
+              Made by <a class="orange-text text-lighten-3" href="http://materializecss.com">Materialize</a>
+              </div>
+            </div>
+          </footer>
+        
+        
+          <!--  Scripts-->
+          <script src="{% static 'app_mascotas/js/materialize.js' %}"></script>
+          <script src="{% static 'app_mascotas/js/init.js' %}"></script>
+          {% block javascript %}
+          {% endblock %}
  <!-- JavaScript para la confirmación de cierre de sesión -->
  <script>
     function confirmLogout() {

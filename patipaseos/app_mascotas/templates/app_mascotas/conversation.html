@@ -1,0 +1,36 @@
+{% extends "app_mascotas/base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Chat{% endblock %}
+
+{% block content %}
+
+<div class="col s12 m4">
+    <ul class="collection with-header">
+        <li class="collection-header">
+            <h5>Chat activo</h5>
+        </li>
+{% for message in messages %}
+    {% if message.sender == user %}
+        <p><strong>{{ user.username }}:</strong> {{ message.body }}</p>
+    {% else %}
+        <p><strong>{{ recipient.username }}:</strong> {{ message.body }}</p>
+    {% endif %}
+{% endfor %}
+</div>
+
+<form method="post" action="{% url 'send_message' recipient_id=recipient.id %}">
+    {% csrf_token %}
+    <label for="body">Responder:</label>
+    <textarea name="body" required></textarea>
+    <input class="btn btn-primary" type="submit" value="Enviar">
+</form>
+
+
+
+{% endblock %}
+
+
+
+

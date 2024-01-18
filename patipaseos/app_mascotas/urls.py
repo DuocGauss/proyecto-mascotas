@@ -21,4 +21,7 @@ urlpatterns = [
     path('mod_mascota/<int:id_mascota>',views.modificar_mascota,name="modificar_mascota"),
     path('detalle_prestacion/<int:id_servicio>/', views.detalle_prestacion, name='detalle_prestacion'),
     path('prestacion/',views.prestacion,name="prestacion"),
+    path('inbox/', views.inbox, name='inbox'),
+    path('conversation/<int:recipient_id>/', views.conversation, name='conversation'),
+    path('send_message/<int:recipient_id>/', views.send_message, name='send_message'),
 ]

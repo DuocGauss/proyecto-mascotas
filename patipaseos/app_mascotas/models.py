@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
-
+from django.db.models import Max
 # Create your models here.
 
 
@@ -61,4 +61,59 @@ class DetPrestacion(models.Model):
     
     def __str__(self):
         return f"{self.fecha_prestacion} - {self.valor_total} - {self.id_servicio}"
+    
+    
+
+
+class Mensaje(models.Model):
+    user = models.ForeignKey(Propietario, on_delete=models.CASCADE, related_name='sent_messages')
+    sender = models.ForeignKey(Propietario, on_delete=models.CASCADE, related_name='sent_messages_as_sender')
+    recipient = models.ForeignKey(Propietario, on_delete=models.CASCADE, related_name='received_messages')
+    body = models.TextField(max_length=1000, blank=True, null=True)
+    date = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    @classmethod
+    def send_message(cls, from_user, to_user, body):
+        if from_user == to_user:
+            raise ValueError("El remitente y el destinatario deben ser diferentes.")
+
+        sender_message = cls(
+            user=from_user,
+            sender=from_user,
+            recipient=to_user,
+            body=body,
+            is_read=True
+        )
+        sender_message.save()
+
+        recipient_message = cls(
+            user=to_user,
+            sender=from_user,
+            body=body,
+            recipient=from_user,
+        )
+        recipient_message.save()
+
+        return sender_message
+
+    @classmethod
+    def get_messages(cls, user):
+        messages = (
+            cls.objects
+            .filter(user=user)
+            .values('recipient')
+            .annotate(last=Max('date'))
+            .order_by('-last')
+        )
+
+        users = [
+            {
+                'user': Propietario.objects.get(pk=message['recipient']),
+                'last': message['last'],
+                'unread': cls.objects.filter(user=user, recipient__pk=message['recipient'], is_read=False).count()
+            }
+            for message in messages
+        ]
+        return users
     

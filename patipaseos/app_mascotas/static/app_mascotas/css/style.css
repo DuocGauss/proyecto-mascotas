@@ -1,10 +1,4 @@
-/* Estilos para el encabezado */
-header {
-    background-color: rgb(0, 0, 0);
-    color: #fff;
-    position: relative;
-    padding: 0 2rem;
-}
+
 
 header h1 {
     margin: 0;
@@ -257,6 +251,7 @@ body {
 
 .user-card-full {
   overflow: hidden;
+  min-height: 100%;
 }
 
 .card {
@@ -278,21 +273,25 @@ body {
 .user-card-full .user-profile {
   border-radius: 5px 0 0 5px;
   overflow: hidden;
+  height: auto;
 }
 
 .bg-c-lite-green {
   background: -webkit-gradient(linear, left top, right top, from(#f29263), to(#ee5a6f));
   background: linear-gradient(to right, #ee5a6f, #f29263);
-  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: auto;
+  height: auto;
 }
 
 .bg-c-lite-green img {
   max-width: 100%;
   max-height: 100%;
   border-radius: 50%;
+  width: auto;
+  height: auto;
 }
 
 .user-profile {

@@ -36,6 +36,9 @@
                                 </div>
                                 <h6 class="f-w-600">{{ propietario.first_name }} {{ propietario.last_name }}</h6>
                                 <p>{{ cuidador.especializacion|default:"Usuario normal" }}</p>
+                                {% if user.is_authenticated %}
+                                <a href="{% url 'conversation' recipient_id=cuidador.propietario.id %}" class="btn btn-primary">Iniciar Chat</a>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="col-sm-8">

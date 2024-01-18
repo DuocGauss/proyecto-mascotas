@@ -1,11 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Propietario, Cuidador, Servicio, Mascota, DetPrestacion
+from .models import Propietario, Cuidador, Servicio, Mascota, DetPrestacion, Mensaje
 from .forms import frmRegistro, frmLogin, frmCuidador, frmEdit, frmServicio, frmMascota, frmDetPrestacion
 from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q
+from django.http import HttpResponseBadRequest
 
 # Create your views here.
 def index(request):
@@ -206,7 +207,9 @@ def perfil_servicio(request, id_servicio):
     cuidador = servicio.cuidador
     propietario = cuidador.propietario
     obtener = Servicio.objects.filter(cuidador=cuidador)
+    destinatario = Propietario.objects.exclude(pk=request.user.id)
     mascotas_usuario = Mascota.objects.filter(propietario=propietario)
+    user = request.user
 
     contexto = {
         'servicio': servicio,
@@ -214,6 +217,8 @@ def perfil_servicio(request, id_servicio):
         'propietario': propietario,
         'obtener': obtener,
         'mascotas_usuario': mascotas_usuario,
+        'destinatario': destinatario,
+        'user': user,
     }
     return render(request, 'app_mascotas/perfil_servicio.html', contexto)
 
@@ -362,3 +367,47 @@ def prestacion(request):
             prestacion.save()
 
     return render(request, 'app_mascotas/prestacion.html', {'prestaciones_cuidador': prestaciones_cuidador, 'prestaciones_cliente': prestaciones_cliente, 'cuidador': cuidador})
+
+
+@login_required
+def inbox(request):
+    user = request.user
+    messages = Mensaje.get_messages(user)
+    recipients = Propietario.objects.exclude(pk=request.user.id)
+    
+    contexto = {
+        'messages': messages,
+        'recipients': recipients
+    }
+    return render(request, 'app_mascotas/inbox.html', contexto)
+
+
+@login_required
+def send_message(request, recipient_id):
+    if request.method == 'POST':
+        body = request.POST.get('body', '')
+        
+        try:
+            recipient = Propietario.objects.get(pk=recipient_id)
+            Mensaje.send_message(request.user, recipient, body)
+            # Redirige de nuevo a la página de conversación
+            return redirect('conversation', recipient_id=recipient_id)
+        except Propietario.DoesNotExist:
+            return HttpResponseBadRequest("El destinatario no existe.")
+        except ValueError as e:
+            return HttpResponseBadRequest(str(e))
+    else:
+        recipients = Propietario.objects.exclude(pk=request.user.id)
+        return render(request, 'app_mascotas/send_message.html', {'recipients': recipients})
+
+
+@login_required
+def conversation(request, recipient_id):
+    user = request.user
+    recipient = Propietario.objects.get(pk=recipient_id)
+    messages = Mensaje.objects.filter(
+        (Q(sender=user) & Q(recipient=recipient)) |
+        (Q(sender=recipient) & Q(recipient=user))
+    ).order_by('date')
+
+    return render(request, 'app_mascotas/conversation.html', {'messages': messages, 'recipient': recipient})
