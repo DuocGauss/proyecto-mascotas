@@ -395,7 +395,16 @@ p {
 
 
 
+.score-star {
+  color: rgba(250, 250, 1, 0.559);
+  font-size: 1.5em;
+}
 
+
+.custom-card {
+  width: 70%; /* Ajusta el ancho según tus necesidades */
+  margin: auto; /* Centra el card-panel */
+}
 
 
 

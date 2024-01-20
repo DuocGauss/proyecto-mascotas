@@ -1,5 +1,5 @@
 from django import forms
-from .models import Propietario, Cuidador, Servicio, Mascota, DetPrestacion
+from .models import Propietario, Cuidador, Servicio, Mascota, DetPrestacion, Resena
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, UserChangeForm
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
@@ -82,3 +82,12 @@ class frmDetPrestacion(forms.ModelForm):
 
         
     
+
+class frmResena(forms.ModelForm):
+    class Meta:
+        model = Resena
+        fields = ['texto', 'calificacion']
+        widgets = {
+            'texto': forms.Textarea(attrs={'rows': 3}),
+            'calificacion': forms.HiddenInput(),  # Campo oculto para almacenar la calificación
+        }

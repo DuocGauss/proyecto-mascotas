@@ -22,6 +22,6 @@ urlpatterns = [
     path('detalle_prestacion/<int:id_servicio>/', views.detalle_prestacion, name='detalle_prestacion'),
     path('prestacion/',views.prestacion,name="prestacion"),
     path('inbox/', views.inbox, name='inbox'),
-    path('conversation/<int:recipient_id>/', views.conversation, name='conversation'),
-    path('send_message/<int:recipient_id>/', views.send_message, name='send_message'),
+    path('conversation/<username>/', views.conversation, name='conversation'),
+    path('send_message/<username>/', views.send_message, name='send_message'),
 ]

@@ -1,5 +1,5 @@
 <!-- En tu plantilla -->
-<form method="post" action="{% url 'send_message' recipient_id=recipient.id %}">
+<form method="post" action="{% url 'send_message' username=recipient.username %}">
     {% csrf_token %}
     <label for="body">Mensaje:</label>
     <textarea name="body" required></textarea>

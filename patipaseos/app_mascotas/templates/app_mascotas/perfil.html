@@ -119,7 +119,6 @@
                                 <div class="m-b-25">
                                     {% if data.imagen %}
                                         <img src="{{ data.imagen.url }}" class="circle responsive-img" alt="User-Profile-Image">
-                                        <button class="btn btn-info m-t-10" onclick="editProfileImage()"><i class="fas fa-edit"></i></button>
                                     {% else %}
                                         <img src="{% static 'img/no_avatar.jpg' %}" class="img-radius" alt="User-Profile-Image">
                                         <button class="btn btn-success m-t-10" onclick="addProfileImage()">Agregar Foto</button>

@@ -67,8 +67,6 @@
         </div>
         <hr>
     {% endfor %}
-{% else %}
-    <!-- Puedes agregar un mensaje si el usuario no es un cuidador -->
 {% endif %}
 
 {% if prestaciones_cliente %}
@@ -102,7 +100,13 @@
     </div>
 {% endfor %}
 {% else %}
-<h4>Sin registros</h4>
+<div class="center-align">
+    <br><br><br><br><br>
+    <i class="material-icons large">pets</i>
+    <h3>Sin Solicitudes</h3>
+    <h5>Tu historial esta vacio</h5>
+    <br><br><br><br><br>
+</div>
 {% endif %}
 
 

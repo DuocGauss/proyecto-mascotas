@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 from django.db.models import Max
+from django.core.validators import MinValueValidator, MaxValueValidator
 # Create your models here.
 
 
@@ -116,4 +117,22 @@ class Mensaje(models.Model):
             for message in messages
         ]
         return users
+    
+    
+    
+    
+
+
+class Resena(models.Model):
+    cuidador = models.ForeignKey(Cuidador, on_delete=models.CASCADE, related_name='resenas')
+    autor = models.ForeignKey(Propietario, on_delete=models.CASCADE)
+    texto = models.TextField()
+    calificacion = models.PositiveIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.fecha_creacion} - {self.autor} - {self.calificacion}"
+
     

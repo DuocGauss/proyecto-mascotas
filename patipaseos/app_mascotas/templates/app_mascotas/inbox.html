@@ -9,7 +9,7 @@
 <div class="container">
     <ul class="collection">
         {% for message in messages %}
-        <a href="{% url 'conversation' recipient_id=message.user.id %}">
+        <a href="{% url 'conversation' message.user.username %}">
             <li class="collection-item avatar">
                 {% if message.user.imagen %}
                     <img src="{{ message.user.imagen.url }}" class="circle responsive-img">
@@ -19,7 +19,6 @@
                     <span class="title">{{ message.user.first_name }} {{ message.user.last_name }}</span>
                     <p><b>@{{ message.user.username }}</b></p>
                     <span class="new badge">{{ message.unread }}</span>
-                    <a href="" class="secondary-content red-text"><i class="material-icons">delete</i></a>
             </li>
             </a>
         {% empty %}

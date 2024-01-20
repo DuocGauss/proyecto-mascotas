@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Propietario, Cuidador, Servicio, Mascota, DetPrestacion, Mensaje
-from .forms import frmRegistro, frmLogin, frmCuidador, frmEdit, frmServicio, frmMascota, frmDetPrestacion
+from .models import Propietario, Cuidador, Servicio, Mascota, DetPrestacion, Mensaje, Resena
+from .forms import frmRegistro, frmLogin, frmCuidador, frmEdit, frmServicio, frmMascota, frmDetPrestacion, frmResena
 from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -210,6 +210,24 @@ def perfil_servicio(request, id_servicio):
     destinatario = Propietario.objects.exclude(pk=request.user.id)
     mascotas_usuario = Mascota.objects.filter(propietario=propietario)
     user = request.user
+    resenas = Resena.objects.filter(cuidador=cuidador)
+    has_left_review = False
+    if request.method == 'POST':
+        # Procesa el formulario de reseñas aquí y actualiza el cuidador
+        form = frmResena(request.POST)
+        if form.is_valid():
+            # Verifica si el usuario ya ha dejado una reseña para este cuidador
+            if Resena.objects.filter(cuidador=cuidador, autor=user).exists():
+                has_left_review = True
+            else:
+                resena = form.save(commit=False)
+                resena.cuidador = cuidador
+                resena.autor = request.user
+                resena.save()
+                has_left_review = False
+
+    else:
+        form = frmResena()
 
     contexto = {
         'servicio': servicio,
@@ -219,8 +237,12 @@ def perfil_servicio(request, id_servicio):
         'mascotas_usuario': mascotas_usuario,
         'destinatario': destinatario,
         'user': user,
+        'resenas': resenas,
+        'form': form,
+        'has_left_review': has_left_review,
     }
     return render(request, 'app_mascotas/perfil_servicio.html', contexto)
+
 
 
 
@@ -383,15 +405,15 @@ def inbox(request):
 
 
 @login_required
-def send_message(request, recipient_id):
+def send_message(request, username):
     if request.method == 'POST':
         body = request.POST.get('body', '')
         
         try:
-            recipient = Propietario.objects.get(pk=recipient_id)
+            recipient = Propietario.objects.get(username=username)
             Mensaje.send_message(request.user, recipient, body)
             # Redirige de nuevo a la página de conversación
-            return redirect('conversation', recipient_id=recipient_id)
+            return redirect('conversation', username=username)
         except Propietario.DoesNotExist:
             return HttpResponseBadRequest("El destinatario no existe.")
         except ValueError as e:
@@ -401,13 +423,29 @@ def send_message(request, recipient_id):
         return render(request, 'app_mascotas/send_message.html', {'recipients': recipients})
 
 
-@login_required
-def conversation(request, recipient_id):
-    user = request.user
-    recipient = Propietario.objects.get(pk=recipient_id)
-    messages = Mensaje.objects.filter(
-        (Q(sender=user) & Q(recipient=recipient)) |
-        (Q(sender=recipient) & Q(recipient=user))
-    ).order_by('date')
 
-    return render(request, 'app_mascotas/conversation.html', {'messages': messages, 'recipient': recipient})
+@login_required
+def conversation(request, username):
+    user = request.user
+    active_direct = username
+    directs = Mensaje.objects.filter(user=user, recipient__username=username).order_by('-date')
+    directs.update(is_read=True)
+    messages = Mensaje.get_messages(user=request.user)
+    
+    for message in messages:
+        if message['user'].username==user.username:
+            message['unread'] = 0
+    
+    # Paginación para los mensajes
+    paginator_messages = Paginator(directs, 5)
+    page_number_messages = request.GET.get('messagespage')
+    messages_data = paginator_messages.get_page(page_number_messages)
+    
+    
+    context = {
+        'directs': messages_data,
+        'active_direct': active_direct,
+        'messages': messages
+    }
+
+    return render(request, 'app_mascotas/conversation.html', context)

@@ -18,6 +18,17 @@
        </script>
     {% endfor %}
 {% endif %}
+{% if has_left_review %}
+    <script>
+        Swal.fire({
+            title: 'Advertencia',
+            text: 'Ya has dejado una reseña para este cuidador.',
+            icon: 'warning',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: 'orange'
+        });
+    </script>
+{% endif %}
 
 <div class="page-content page-container" id="page-content">
     <div class="padding">
@@ -37,7 +48,7 @@
                                 <h6 class="f-w-600">{{ propietario.first_name }} {{ propietario.last_name }}</h6>
                                 <p>{{ cuidador.especializacion|default:"Usuario normal" }}</p>
                                 {% if user.is_authenticated %}
-                                <a href="{% url 'conversation' recipient_id=cuidador.propietario.id %}" class="btn btn-primary">Iniciar Chat</a>
+                                <a href="{% url 'conversation' username=cuidador.propietario.username %}" class="btn btn-primary">Iniciar Chat</a>
                                 {% endif %}
                             </div>
                         </div>
@@ -126,5 +137,90 @@
         {% endfor %}
     </div>
 </div>
+
+<!-- Sección de Reseñas -->
+<div class="card-panel custom-card">
+    <h5>Reseñas:</h5>
+    <div class="divider"></div>
+
+    <ul class="collection">
+        {% for resena in resenas %}
+            <li class="collection-item avatar">
+                {% if resena.autor.imagen %}
+                    <img src="{{ resena.autor.imagen.url }}" class="circle responsive-img">
+                {% else %}
+                    <img src="{% static 'img/no_avatar.jpg' %}" class="circle responsive-img">
+                {% endif %}
+                <span style="font-weight: bold; font-size: 20px" class="title">{{ resena.autor.first_name }} {{ resena.autor.last_name }}</span>
+                <span class="title secondary-content">{{ resena.fecha_creacion }}</span>
+                <p>@{{ resena.autor.username }}</p>
+                <br>
+                {{ resena.texto }}
+                <br>
+                <strong>Calificación: {{ resena.calificacion }} Estrellas</strong>
+            </li>
+        {% empty %}
+            <div class="center-align">
+                <h5>Sin reseñas</h5>
+                <span>Sé el primero en dejar una reseña</span>
+            </div>
+        {% endfor %}
+    </ul>
+{% if user.is_authenticated %}
+    <div class="row">
+        <form method="post" action="{% url 'perfil_servicio' id_servicio=servicio.id_servicio %}" role="form" class="col s12">
+            {% csrf_token %}
+            
+            <div class="row">
+                <div class="input-field col s12">
+                    <i class="material-icons prefix">edit</i>
+                    {{ form.texto }}
+                    <label for="texto">Reseña</label>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="input-field col s12">
+                    <!-- Aquí incluimos el campo de calificación con raty -->
+                    <div class="score-star" id="stars" rel="score-appearance"></div>
+                    {{ form.calificacion }}
+                    <label for="calificacion">Calificación</label>
+                </div>
+            </div>
+
+            <div class="row-center">
+                <button class="btn waves-effect waves-light" type="submit" name="action">Enviar
+                    <i class="material-icons right">send</i>
+                </button>
+            </div>
+        </form>
+    </div>
+{% else %}
+    <div class="center-align">
+        <h5>Inicia sesión para dejar una reseña</h5>
+    </div>
+{% endif %}
+</div>
+
+    <!-- Script para inicializar raty -->
+<!-- Script para inicializar raty -->
+<script>
+    $('#stars').raty({
+        score: function() {
+            return $(this).attr('data-score');
+        },
+        click: function(score, evt) {
+            // Actualiza el valor del campo de calificación oculto
+            $('input[name="calificacion"]').val(score);
+        }, // <-- Agrega una coma aquí
+        starType: 'i'
+    });
+</script>
+
+
+</div>
+
+
+
 
 {% endblock %}
