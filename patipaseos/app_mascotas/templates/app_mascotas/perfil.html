@@ -121,12 +121,22 @@
                                         <img src="{{ data.imagen.url }}" class="circle responsive-img" alt="User-Profile-Image">
                                     {% else %}
                                         <img src="{% static 'img/no_avatar.jpg' %}" class="img-radius" alt="User-Profile-Image">
-                                        <button class="btn btn-success m-t-10" onclick="addProfileImage()">Agregar Foto</button>
                                     {% endif %}
                                 </div>
                                 <h6 class="f-w-600">{{ data.first_name }} {{ data.last_name }}</h6>
                                 <p>{{ cuidador_data.especializacion|default:"Usuario normal" }}</p>
                                 <i class=" mdi mdi-square-edit-outline feather icon-edit m-t-10 f-16"></i>
+
+                                {% if cuidador_data %}
+                                <!-- Agrega esto en tu plantilla donde desees mostrar la disponibilidad y el botón para cambiarla -->
+                                <form method="post" action="{% url 'perfil' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="cambiar_disponibilidad" value="1">
+                                    <br>
+                                    <p class="m-b-10 f-w-600">{{ cuidador_data.disponibilidad }}</p>
+                                    <button type="submit" class="btn btn-primary">Cambiar</button>
+                                </form>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="col-sm-8">
@@ -161,11 +171,15 @@
                                     {% endif %}
                                 </div>
                                 <!-- Puedes personalizar esto según tus necesidades -->
-                                <ul class="social-link list-unstyled m-t-40 m-b-10">
-                                    <!-- Añade tus enlaces sociales aquí -->
-                                     <a href="{% url 'editar_perfil' data.id %}" class="btn btn-primary">Editar perfil 
-                                        <i class="fas fa-edit"></i>
-                                    </a>
+                                <a class='dropdown-trigger btn' href='#' data-target='dropdown2'><i class="material-icons right">edit</i>Acciones</a>
+
+                                <!-- Dropdown Structure -->
+                                <ul id='dropdown2' class='dropdown-content'>
+                                    <li><a href="{% url 'editar_perfil' data.id %}">Editar datos de usuario</a></li>
+                                    <li><a href="{% url 'password_change' %}">Cambiar contraseña</a></li>
+                                    {% if cuidador_data %}
+                                    <li><a href="{% url 'editar_cuidador' id_cuidador=cuidador_data.id_cuidador %}">Editar datos de cuidador</a></li>
+                                    {% endif %}
                                 </ul>
                             </div>
                         </div>
@@ -180,7 +194,7 @@
 
     {% if mascotas_usuario %}
     <h2>Mis Mascotas</h2>
-    <div class="row">
+    <div class="row justify-content-center">
         {% for mascota in mascotas_usuario %}
             <div class="col-md-4">
                 <div class="card d-flex">
@@ -217,39 +231,108 @@
 
 
 
-
-
-    {% if cuidador_data %}
+{% if cuidador_data %}
     <div class="col-md-12">
-        <h1>Servicios Publicados:</h1>
+        <h1 class="text-center">Servicios Publicados:</h1>
     </div>
-    <div class="card-group">
-        {% for servicio in servicios %}
-            <div class="card">
-                <!-- Puedes personalizar la presentación de cada servicio aquí -->
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <h5 class="card-title">{{ servicio.tipo_servicio }}</h5>
-                        <div class="btn-group">
-                            <a class="btn" href="{% url "modificar_servicio" servicio.id_servicio %}">
-                                <i class="fas fa-edit"></i> 
-                            </a>
-                            <a class="btn" onclick="eliminarServicio({{ servicio.id_servicio }})">
-                                <i class="fas fa-times"></i> 
-                            </a>
+    <div class="container">
+        <div class="row justify-content-center">
+            {% for servicio in servicios %}
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <h5 class="card-title">{{ servicio.tipo_servicio }}</h5>
+                                <div class="btn-group">
+                                    <a class="btn" href="{% url "modificar_servicio" servicio.id_servicio %}">
+                                        <i class="fas fa-edit"></i> 
+                                    </a>
+                                    <a class="btn" onclick="eliminarServicio({{ servicio.id_servicio }})">
+                                        <i class="fas fa-times"></i> 
+                                    </a>
+                                </div>
+                            </div>
+                            <p class="card-text">{{ servicio.descripcion }}</p>
+                            <p class="card-text"><small class="text-muted">Precio: ${{ servicio.precio }}</small></p>
                         </div>
                     </div>
-                    <p class="card-text">{{ servicio.descripcion }}</p>
-                    <p class="card-text"><small class="text-muted">Precio: ${{ servicio.precio }}</small></p>
                 </div>
-            </div>
-        {% endfor %}
+            {% empty %}
+                <div class="col-md-12">
+                    <p>Sin servicios publicados</p>
+                </div>    
+            {% endfor %}
+        </div>
     </div>
 {% else %}
     <div class="col-md-12">
         <p></p>
     </div>
 {% endif %}
+
+
+    
+
+{% if reseñas_cuidador %}
+<!-- Sección de Reseñas -->
+<div class="card-panel custom-card">
+    <h5>Reseñas:</h5>
+    <div class="divider"></div>
+
+    <ul class="collection">
+        {% for resena in reseñas_cuidador %}
+            <li class="collection-item avatar">
+                {% if resena.autor.imagen %}
+                    <img src="{{ resena.autor.imagen.url }}" class="circle responsive-img">
+                {% else %}
+                    <img src="{% static 'img/no_avatar.jpg' %}" class="circle responsive-img">
+                {% endif %}
+                <span style="font-weight: bold; font-size: 20px" class="title">{{ resena.autor.first_name }} {{ resena.autor.last_name }}</span>
+                <span class="title secondary-content">{{ resena.fecha_creacion }}</span>
+                <p>@{{ resena.autor.username }}</p>
+                <br>
+                {{ resena.texto }}
+                <br>
+                <strong>Calificación: {{ resena.calificacion }} Estrellas</strong>
+            </li>
+        {% empty %}
+            <div class="center-align">
+                <h5>Sin reseñas</h5>
+                <span>Sé el primero en dejar una reseña</span>
+            </div>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if reseñas_cuidador.has_other_pages %}
+    <div class="btn-group" role="group" aria-label="Item pagination">
+        {% if reseñas_cuidador.has_previous %}
+            <a href="?page=1" class="btn btn-outline-primary">&laquo;&laquo;</a>
+            <a href="?page={{ reseñas_cuidador.previous_page_number }}" class="btn btn-outline-primary">&laquo;</a>
+        {% endif %}
+
+        {% for page_number in reseñas_cuidador.paginator.page_range %}
+            {% if reseñas_cuidador.number == page_number %}
+                <button class="btn btn-outline active">
+                    <span>{{ page_number }} <span class="sr-only">(current)</span></span>
+                </button>
+            {% else %}
+                <a href="?page={{ page_number }}" class="btn">
+                    {{ page_number }}
+                </a>
+            {% endif %}
+        {% endfor %}
+
+        {% if reseñas_cuidador.has_next %}
+            <a href="?page={{ reseñas_cuidador.next_page_number }}" class="btn btn-outline-primary">&raquo;</a>
+            <a href="?page={{ reseñas_cuidador.paginator.num_pages }}" class="btn btn-outline-primary">&raquo;&raquo;</a>
+        {% endif %}
+    </div>
+{% else %}
+    <p></p>
+{% endif %}
+
 
 <script>
 $('#agregarMascotaModal').on('show.bs.modal', function (event) {
@@ -283,6 +366,11 @@ $('#agregarMascotaModal').on('show.bs.modal', function (event) {
 
 </div>
 
-
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var elems = document.querySelectorAll('.dropdown-trigger');
+        var instances = M.Dropdown.init(elems, options);
+      });
+    </script>
 
 {% endblock %}

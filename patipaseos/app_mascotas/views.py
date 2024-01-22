@@ -13,7 +13,7 @@ def index(request):
     default_page = 1
     page = request.GET.get('page', default_page)
 
-    obtener = Servicio.objects.all()
+    obtener = Servicio.objects.all().order_by('-id_servicio')
     
     query = request.GET.get('q')  # Obtener el término de búsqueda del request
     
@@ -114,6 +114,7 @@ def cuidador(request):
 @login_required
 def perfil(request):
     context = {}
+    reseñas_cuidador = []
     cuidador_data = None 
     form_mascota = frmMascota() 
     if request.method == 'POST':
@@ -126,6 +127,7 @@ def perfil(request):
             return redirect('perfil')
     else:
         form_mascota = frmMascota()
+        
     mascotas_usuario = Mascota.objects.filter(propietario=request.user)
     check = Propietario.objects.filter(pk=request.user.id)
     if len(check) > 0:
@@ -138,10 +140,30 @@ def perfil(request):
             context["cuidador_data"] = cuidador_data
             context["servicios"] = servicios
             context["cuidador_data"] = cuidador_data
+            # Obtener reseñas asociadas al cuidador
+            reseñas_cuidador = Resena.objects.filter(cuidador=cuidador_data).order_by('-fecha_creacion')
+            # Paginación para las reseñas
+            paginator = Paginator(reseñas_cuidador, 3)
+            page_number = request.GET.get('page')
+            reseñas_paginadas = paginator.get_page(page_number)
+            context["reseñas_cuidador"] = reseñas_paginadas
+            
+            # Verificar si el usuario es también un cuidador
+            if cuidador_data:
+                if 'cambiar_disponibilidad' in request.POST:
+                    if cuidador_data.disponibilidad == 'Disponible':
+                        cuidador_data.disponibilidad = 'No Disponible'
+                    else:
+                        cuidador_data.disponibilidad = 'Disponible'
+                    cuidador_data.save()
+                    messages.success(request, 'Disponibilidad cambiada con éxito.')
+            
     else:
         data = None
     context["mascotas_usuario"] = mascotas_usuario 
     context["form_mascota"] = form_mascota
+    
+    
 
     return render(request, "app_mascotas/perfil.html", context)
 
@@ -210,7 +232,7 @@ def perfil_servicio(request, id_servicio):
     destinatario = Propietario.objects.exclude(pk=request.user.id)
     mascotas_usuario = Mascota.objects.filter(propietario=propietario)
     user = request.user
-    resenas = Resena.objects.filter(cuidador=cuidador)
+    resenas = Resena.objects.filter(cuidador=cuidador).order_by('-fecha_creacion')
     has_left_review = False
     if request.method == 'POST':
         # Procesa el formulario de reseñas aquí y actualiza el cuidador
@@ -224,11 +246,15 @@ def perfil_servicio(request, id_servicio):
                 resena.cuidador = cuidador
                 resena.autor = request.user
                 resena.save()
+                messages.success(request,"Comentario Agregado!")
                 has_left_review = False
 
     else:
         form = frmResena()
-
+    # Paginación para las reseñas
+    paginator = Paginator(resenas, 3)
+    page_number = request.GET.get('page')
+    reseñas_paginadas = paginator.get_page(page_number)
     contexto = {
         'servicio': servicio,
         'cuidador': cuidador,
@@ -237,13 +263,21 @@ def perfil_servicio(request, id_servicio):
         'mascotas_usuario': mascotas_usuario,
         'destinatario': destinatario,
         'user': user,
-        'resenas': resenas,
+        'resenas': reseñas_paginadas,
         'form': form,
         'has_left_review': has_left_review,
     }
     return render(request, 'app_mascotas/perfil_servicio.html', contexto)
 
+@login_required
+def eliminar_resena(request, id):
+    resena = get_object_or_404(Resena, id=id)
 
+    # Asegúrate de que solo el autor de la reseña puede eliminarla
+    if resena.autor == request.user:
+        resena.delete()
+        messages.success(request,"Comentario Eliminado!")
+        return redirect('perfil_servicio', id_servicio=resena.cuidador.id_cuidador)
 
 
 @login_required
@@ -358,18 +392,51 @@ def detalle_prestacion(request, id_servicio):
 
 @login_required
 def prestacion(request):
-    cuidador = None
+    default_page = 1
+    page = request.GET.get('page', default_page)
+    
+    # Obtener todas las prestaciones relacionadas con el propietario (cliente)
+    prestaciones_cliente = DetPrestacion.objects.filter(id_propietario=request.user).order_by('-fecha_prestacion')
+    items_per_page = 3  # Ajusta el número de elementos por página según tus necesidades
+    paginator = Paginator(prestaciones_cliente, items_per_page)
 
+    try:
+        prestaciones_cliente = paginator.page(page)
+    except PageNotAnInteger:
+        prestaciones_cliente = paginator.page(default_page)
+    except EmptyPage:
+        prestaciones_cliente = paginator.page(paginator.num_pages)
+    
+    if request.method == 'POST':
+        # Obtener el ID de la prestación que se quiere cancelar
+        prestacion_id = request.POST.get('id')
+
+        # Buscar la prestación
+        prestacion = get_object_or_404(DetPrestacion, id=prestacion_id)
+
+        # Verificar que la prestación está pendiente antes de cambiar el estado
+        if prestacion.estado == 'Pendiente':
+            # Cambiar el estado de la prestación a 'Cancelado'
+            prestacion.estado = 'Cancelado'
+            prestacion.save()
+
+            # Actualizar la lista de prestaciones después de la cancelación
+            prestaciones_cliente = paginator.page(page)
+
+    return render(request, 'app_mascotas/prestacion.html', {'prestaciones_cliente': prestaciones_cliente})
+
+@login_required
+def prestacion_cuidador(request):
+    default_page = 1
+    page = request.GET.get('page', default_page)
+    cuidador = None
+    
     try:
         cuidador = Cuidador.objects.get(propietario=request.user)
     except Cuidador.DoesNotExist:
         cuidador = None
-
     # Obtener todas las prestaciones relacionadas con el cuidador si existe
     prestaciones_cuidador = DetPrestacion.objects.filter(id_cuidador=cuidador) if cuidador else []
-
-    # Obtener todas las prestaciones relacionadas con el propietario (cliente)
-    prestaciones_cliente = DetPrestacion.objects.filter(id_propietario=request.user)
     
     if request.method == 'POST':
         # Obtener el ID de la prestación que se quiere cambiar
@@ -387,8 +454,20 @@ def prestacion(request):
             # Cambiar el estado de la prestación a 'Finalizado'
             prestacion.estado = 'Finalizado'
             prestacion.save()
-
-    return render(request, 'app_mascotas/prestacion.html', {'prestaciones_cuidador': prestaciones_cuidador, 'prestaciones_cliente': prestaciones_cliente, 'cuidador': cuidador})
+    items_per_page = 3  # Ajusta el número de elementos por página según tus necesidades
+    paginator = Paginator(prestaciones_cuidador, items_per_page)
+    try:
+        prestaciones_cuidador = paginator.page(page)
+    except PageNotAnInteger:
+        prestaciones_cuidador = paginator.page(default_page)
+    except EmptyPage:
+        prestaciones_cuidador = paginator.page(paginator.num_pages)
+    
+    context = {
+            "cuidador": cuidador,
+            "prestaciones_cuidador": prestaciones_cuidador
+        }
+    return render(request, 'app_mascotas/prestacion_cuidador.html', context)
 
 
 @login_required
@@ -449,3 +528,29 @@ def conversation(request, username):
     }
 
     return render(request, 'app_mascotas/conversation.html', context)
+
+
+
+@login_required
+def editar_cuidador(request,id_cuidador):
+    prod=get_object_or_404(Cuidador,pk=id_cuidador)
+    form=frmCuidador(instance=prod)
+    #form.fields["id"].disabled=True
+    contexto={
+        "form":form
+    }
+
+    if request.method=="POST":
+        form=frmCuidador(data=request.POST,files=request.FILES,instance=prod)
+        #form.fields["id"].disabled=False
+        if form.is_valid():
+            search=Cuidador.objects.get(pk=prod.id_cuidador)
+            datos_form=form.cleaned_data
+            search.especializacion=datos_form.get("especializacion")
+            search.experiencia=datos_form.get("experiencia")
+            search.save()
+            messages.success(request,"Datos del cuidador modificados!")
+            return redirect(to="perfil")
+        contexto["form"]=form
+        
+    return render(request,"app_mascotas/editar_cuidador.html",contexto)

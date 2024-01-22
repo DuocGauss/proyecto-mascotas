@@ -409,7 +409,13 @@ p {
 
 
 
+.navbar-brand img {
+  transition: transform 0.3s; /* Agrega una transición suave de 0.3 segundos */
+}
 
+.navbar-brand img:hover {
+  transform: scale(1.2); /* Hace que la imagen sea un 20% más grande al pasar el ratón */
+}
 
 
 

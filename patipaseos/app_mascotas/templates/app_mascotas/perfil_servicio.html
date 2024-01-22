@@ -47,6 +47,7 @@
                                 </div>
                                 <h6 class="f-w-600">{{ propietario.first_name }} {{ propietario.last_name }}</h6>
                                 <p>{{ cuidador.especializacion|default:"Usuario normal" }}</p>
+                                <p class="m-b-10 f-w-600">{{ cuidador.disponibilidad }}</p>
                                 {% if user.is_authenticated %}
                                 <a href="{% url 'conversation' username=cuidador.propietario.username %}" class="btn btn-primary">Iniciar Chat</a>
                                 {% endif %}
@@ -89,7 +90,7 @@
 
     {% if mascotas_usuario %}
     <h2>Mis Mascotas</h2>
-    <div class="row">
+    <div class="row justify-content-center">
         {% for mascota in mascotas_usuario %}
             <div class="col-md-4">
                 <div class="card d-flex">
@@ -119,24 +120,29 @@
 {% endif %}
 
 
-    <!-- Muestra todos los servicios del usuario en tarjetas Bootstrap -->
-    <div class="col-md-12">
-        <h1>Servicios Publicados:</h1>
-    </div>
-    <div class="card-group">
+<!-- Muestra todos los servicios del usuario en tarjetas Bootstrap -->
+<div class="col-md-12">
+    <h1 class="text-center">Servicios Publicados:</h1>
+</div>
+<div class="container">
+    <div class="row justify-content-center">
         {% for servicios in obtener %}
-            <div class="card">
-                <!-- Puedes personalizar la presentación de cada servicio aquí -->
-                <div class="card-body">
-                    <h5 class="card-title">{{ servicios.tipo_servicio }}</h5>
-                    <p class="card-text">{{ servicios.descripcion }}</p>
-                    <p class="card-text"><small class="text-muted">Precio: ${{ servicios.precio }}</small></p>
-                    <a href="{% url "detalle_prestacion" servicios.id_servicio %}" class="btn btn-lg btn-primary">Adquirir</a>
+            <div class="col-md-4 mb-4"> <!-- Esto ajustará el ancho de cada tarjeta y agrega margen inferior -->
+                <div class="card">
+                    <!-- Puedes personalizar la presentación de cada servicio aquí -->
+                    <div class="card-body">
+                        <h5 class="card-title">{{ servicios.tipo_servicio }}</h5>
+                        <p class="card-text">{{ servicios.descripcion }}</p>
+                        <p class="card-text"><small class="text-muted">Precio: ${{ servicios.precio }}</small></p>
+                        <a href="{% url "detalle_prestacion" servicios.id_servicio %}" class="btn btn-lg btn-primary">Adquirir</a>
+                    </div>
                 </div>
             </div>
         {% endfor %}
     </div>
 </div>
+
+
 
 <!-- Sección de Reseñas -->
 <div class="card-panel custom-card">
@@ -158,6 +164,11 @@
                 {{ resena.texto }}
                 <br>
                 <strong>Calificación: {{ resena.calificacion }} Estrellas</strong>
+                <!-- Agrega esto solo si el autor es el usuario actual -->
+                {% if resena.autor == user %}
+                    <br>
+                    <a href="{% url 'eliminar_resena' id=resena.id %}" class="btn btn-danger">Eliminar mi comentario</a>
+                {% endif %}
             </li>
         {% empty %}
             <div class="center-align">
@@ -201,6 +212,34 @@
     </div>
 {% endif %}
 </div>
+
+{% if resenas.has_other_pages %}
+    <div class="btn-group" role="group" aria-label="Item pagination">
+        {% if resenas.has_previous %}
+            <a href="?page=1" class="btn btn-outline-primary">&laquo;&laquo;</a>
+            <a href="?page={{ resenas.previous_page_number }}" class="btn btn-outline-primary">&laquo;</a>
+        {% endif %}
+
+        {% for page_number in resenas.paginator.page_range %}
+            {% if resenas.number == page_number %}
+                <button class="btn btn-outline active">
+                    <span>{{ page_number }} <span class="sr-only">(current)</span></span>
+                </button>
+            {% else %}
+                <a href="?page={{ page_number }}" class="btn">
+                    {{ page_number }}
+                </a>
+            {% endif %}
+        {% endfor %}
+
+        {% if resenas.has_next %}
+            <a href="?page={{ resenas.next_page_number }}" class="btn btn-outline-primary">&raquo;</a>
+            <a href="?page={{ resenas.paginator.num_pages }}" class="btn btn-outline-primary">&raquo;&raquo;</a>
+        {% endif %}
+    </div>
+{% else %}
+    <p></p>
+{% endif %}
 
     <!-- Script para inicializar raty -->
 <!-- Script para inicializar raty -->
