@@ -43,7 +43,7 @@
                         {% else %}
                             <!-- Puedes agregar una imagen predeterminada si el cliente no tiene una foto -->
                             <a href="{% url 'conversation' username=prestacion.id_propietario.username %}" title="Haz clic para iniciar una conversación">
-                            <img src="{% static 'img/no_avatar.jpg' %}" class="rounded-circle" alt="Foto del Cliente" style="width: 100px; height: 100px;">
+                            <img src="{% static 'app_mascotas/img/no_avatar.jpg' %}" class="rounded-circle" alt="Foto del Cliente" style="width: 100px; height: 100px;">
                             </a>
                         {% endif %}
                     {% endwith %}

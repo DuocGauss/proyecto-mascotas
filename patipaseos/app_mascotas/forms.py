@@ -66,6 +66,7 @@ class frmMascota(forms.ModelForm):
         self.helper.form_method = 'post'
         self.helper.add_input(Submit('submit', 'Guardar'))
         self.fields['id_raza'].label = 'Raza'
+        self.fields['peso'].label = 'Peso en kilogramos'
         
         # Asegúrate de que los campos que deseas que sean opcionales tengan required=False
         self.fields['imagen'].required = False

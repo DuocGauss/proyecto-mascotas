@@ -313,6 +313,7 @@ def perfil_servicio(request, id_servicio):
     servicio = get_object_or_404(Servicio, id_servicio=id_servicio)
     cuidador = servicio.cuidador
     propietario = cuidador.propietario
+    prestaciones_activas = DetPrestacion.objects.filter(id_servicio=servicio, estado__in=['Activo', 'Finalizado'], id_propietario=request.user)
     obtener = Servicio.objects.filter(cuidador=cuidador, es_activo=True)
     destinatario = Propietario.objects.exclude(pk=request.user.id)
     todas_mascotas_usuario = Mascota.objects.filter(propietario=propietario)
@@ -320,23 +321,27 @@ def perfil_servicio(request, id_servicio):
     user = request.user
     resenas = Resena.objects.filter(cuidador=cuidador).order_by('-fecha_creacion')
     has_left_review = False
-    if request.method == 'POST':
-        # Procesa el formulario de reseñas aquí y actualiza el cuidador
-        form = frmResena(request.POST)
-        if form.is_valid():
-            # Verifica si el usuario ya ha dejado una reseña para este cuidador
-            if Resena.objects.filter(cuidador=cuidador, autor=user).exists():
-                has_left_review = True
-            else:
-                resena = form.save(commit=False)
-                resena.cuidador = cuidador
-                resena.autor = request.user
-                resena.save()
-                messages.success(request,"Comentario Agregado!")
-                has_left_review = False
+    if prestaciones_activas.filter(estado__in=['Activo', 'Finalizado']).exists():
+        if request.method == 'POST':
+            # Procesa el formulario de reseñas aquí y actualiza el cuidador
+            form = frmResena(request.POST)
+            if form.is_valid():
+                # Verifica si el usuario ya ha dejado una reseña para este cuidador
+                if Resena.objects.filter(cuidador=cuidador, autor=user).exists():
+                    has_left_review = True
+                else:
+                    resena = form.save(commit=False)
+                    resena.cuidador = cuidador
+                    resena.autor = request.user
+                    resena.save()
+                    messages.success(request,"Comentario Agregado!")
+                    has_left_review = False
 
+        else:
+            form = frmResena()
     else:
-        form = frmResena()
+        # Mostrar un mensaje que indica que la prestación debe completarse para dejar una reseña
+        form = None
     # Paginación para las reseñas
     paginator = Paginator(resenas, 3)
     page_number = request.GET.get('page')

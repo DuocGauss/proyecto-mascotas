@@ -42,7 +42,7 @@
                                     {% if propietario.imagen %}
                                         <img src="{{ propietario.imagen.url }}" class="circle responsive-img" alt="User-Profile-Image">
                                     {% else %}
-                                        <img src="{% static 'img/no_avatar.jpg' %}" class="img-radius" alt="User-Profile-Image">
+                                        <img src="{% static 'app_mascotas/img/no_avatar.jpg' %}" class="img-radius" alt="User-Profile-Image">
                                     {% endif %}
                                 </div>
                                 <h6 class="f-w-600">{{ propietario.first_name }} {{ propietario.last_name }}</h6>
