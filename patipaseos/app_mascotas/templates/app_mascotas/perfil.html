@@ -111,7 +111,7 @@
 <div class="page-content page-container" id="page-content">
     <div class="padding">
         <div class="row container d-flex justify-content-center">
-            <div class="col-xl-6 col-md-12">
+            <div class="col-xl-8 col-md-12">
                 <div class="card user-card-full">
                     <div class="row m-l-0 m-r-0">
                         <div class="col-sm-4 bg-c-lite-green user-profile">
@@ -124,7 +124,15 @@
                                     {% endif %}
                                 </div>
                                 <h6 class="f-w-600">{{ data.first_name }} {{ data.last_name }}</h6>
-                                <p>{{ cuidador_data.especializacion|default:"Usuario normal" }}</p>
+                                {% if user.es_cuidador %}
+                                <p>{{ cuidador_data.especializacion}}</p>
+                                {% endif %}
+                                {% if not user.es_cuidador and not user.is_staff %}
+                                <p>Usuario Normal</p>
+                                {% endif %}
+                                {% if user.is_staff %}
+                                <p>Administrador</p>
+                                {% endif %}
                                 <i class=" mdi mdi-square-edit-outline feather icon-edit m-t-10 f-16"></i>
 
                                 {% if cuidador_data %}
@@ -181,6 +189,14 @@
                                     <li><a href="{% url 'editar_cuidador' id_cuidador=cuidador_data.id_cuidador %}">Editar datos de cuidador</a></li>
                                     {% endif %}
                                 </ul>
+                                <hr>
+                                {% if user.is_superuser %}
+                                <a class='dropdown-trigger btn' href='#' data-target='dropdown3'><i class="material-icons right">lock</i>Admin</a>
+                                <ul id='dropdown3' class='dropdown-content'>                              
+                                    <li><a href="{% url "raza" %}">Agregar especie y raza de la mascotas</a></li>
+                                    <li><a href="{% url "tipo_servicio" %}">Agregar tipo de servicios</a></li>
+                                {% endif %}
+                                </ul>
                             </div>
                         </div>
                     </div>
@@ -192,18 +208,20 @@
         </div>
     </div>
 
-    {% if mascotas_usuario %}
+    {% if mascotas_activas %}
     <h2>Mis Mascotas</h2>
     <div class="row justify-content-center">
-        {% for mascota in mascotas_usuario %}
+        {% for mascota in mascotas_activas %}
             <div class="col-md-4">
                 <div class="card d-flex">
                     <div class="ml-auto mt-2">
+                        <form method="post" action="{% url 'desactivar_mascota' mascota.id_mascota %}">
+                            {% csrf_token %}
+                            <button class='btn' type="submit"><i class="fas fa-toggle-off"></i>
+                            </button>
+                        </form>
                         <a class="btn" href="{% url "modificar_mascota" mascota.id_mascota %}">
                             <i class="fas fa-edit"></i>
-                        </a>
-                        <a class="btn" onclick="eliminarMascota({{ mascota.id_mascota }})">
-                            <i class="fas fa-times"></i>
                         </a>
                     </div>
                     <div class="card-body">
@@ -215,13 +233,45 @@
                         {% endif %}
                         
                         <h5 class="card-title">{{ mascota.nombre_mascota }}</h5>
-                        <p class="card-text"><strong>Tipo:</strong> {{ mascota.tipo_mascota }}</p>
-                        <p class="card-text"><strong>Tamaño:</strong> {{ mascota.tamaño_mascota }}</p>
-                        {% if not mascota.raza_mascota %}
-                            <p></p>
+                        <p class="card-text"><strong>Raza:</strong> {{ mascota.id_raza }}</p>
+                        <p class="card-text"><strong>Peso:</strong> {{ mascota.peso }}</p>
+                        <p class="card-text"><strong>Pelaje:</strong> {{ mascota.pelaje }}</p>
+                        <p class="card-text"><strong>Observaciones:</strong> {{ mascota.observaciones }}</p>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+{% if mascotas_desactivadas %}
+    <h2>Mis Mascotas desactivadas</h2>
+    <div class="row justify-content-center">
+        {% for mascota in mascotas_desactivadas %}
+            <div class="col-md-4">
+                <div class="card d-flex">
+                    <div class="ml-auto mt-2">
+                        <form method="post" action="{% url 'activar_mascota' mascota.id_mascota %}">
+                            {% csrf_token %}
+                            <button class='btn' type="submit"><i class="fas fa-toggle-on"></i></button>
+                        </form>
+                        <a class="btn" href="{% url "modificar_mascota" mascota.id_mascota %}">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <!-- Agrega un espacio para la foto de la mascota -->
+                        {% if mascota.imagen %}
+                            <img src="{{ mascota.imagen.url }}" class="img-fluid rounded" style="max-height: 150px;" alt="Foto de la Mascota">
                         {% else %}
-                            <p class="card-text"><strong>Raza:</strong> {{ mascota.raza_mascota }}</p>
+                            <img src="{% static 'app_mascotas/img/no_pet.png' %}" class="img-fluid rounded" style="max-height: 150px;" alt="Foto de la Mascota por Defecto">
                         {% endif %}
+                        
+                        <h5 class="card-title">{{ mascota.nombre_mascota }}</h5>
+                        <p class="card-text"><strong>Raza:</strong> {{ mascota.id_raza }}</p>
+                        <p class="card-text"><strong>Peso:</strong> {{ mascota.peso }}</p>
+                        <p class="card-text"><strong>Pelaje:</strong> {{ mascota.pelaje }}</p>
+                        <p class="card-text"><strong>Observaciones:</strong> {{ mascota.observaciones }}</p>
                     </div>
                 </div>
             </div>
@@ -230,25 +280,25 @@
 {% endif %}
 
 
-
-{% if cuidador_data %}
+{% if cuidador_data and servicios_activos %}
     <div class="col-md-12">
-        <h1 class="text-center">Servicios Publicados:</h1>
+        <h2 class="text-center">Servicios Publicados:</h2>
     </div>
     <div class="container">
         <div class="row justify-content-center">
-            {% for servicio in servicios %}
+            {% for servicio in servicios_activos %}
                 <div class="col-md-4 mb-4">
                     <div class="card">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-start">
                                 <h5 class="card-title">{{ servicio.tipo_servicio }}</h5>
                                 <div class="btn-group">
+                                    <form method="post" action="{% url 'desactivar_servicio' servicio.id_servicio %}">
+                                        {% csrf_token %}
+                                        <button class='btn' type="submit"><i class="fas fa-toggle-off"></i></button>
+                                    </form>
                                     <a class="btn" href="{% url "modificar_servicio" servicio.id_servicio %}">
                                         <i class="fas fa-edit"></i> 
-                                    </a>
-                                    <a class="btn" onclick="eliminarServicio({{ servicio.id_servicio }})">
-                                        <i class="fas fa-times"></i> 
                                     </a>
                                 </div>
                             </div>
@@ -270,7 +320,45 @@
     </div>
 {% endif %}
 
-
+{% if servicios_desactivados %}
+    <div class="col-md-12">
+        <h2 class="text-center">Servicios desactivados:</h2>
+    </div>
+    <div class="container">
+        <div class="row justify-content-center">
+            {% for servicio in servicios_desactivados %}
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <h5 class="card-title">{{ servicio.tipo_servicio }}</h5>
+                                <div class="btn-group">
+                                    <form method="post" action="{% url 'activar_servicio' servicio.id_servicio %}">
+                                        {% csrf_token %}
+                                        <button class='btn' type="submit"><i class="fas fa-toggle-on"></i></button>
+                                    </form>
+                                    <a class="btn" href="{% url "modificar_servicio" servicio.id_servicio %}">
+                                        <i class="fas fa-edit"></i> 
+                                    </a>
+                                </div>
+                            </div>
+                            <p class="card-text">{{ servicio.descripcion }}</p>
+                            <p class="card-text"><small class="text-muted">Precio: ${{ servicio.precio }}</small></p>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-md-12">
+                    <p>Sin servicios publicados</p>
+                </div>    
+            {% endfor %}
+        </div>
+    </div>
+{% else %}
+    <div class="col-md-12">
+        <p></p>
+    </div>
+{% endif %}
     
 
 {% if reseñas_cuidador %}

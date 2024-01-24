@@ -1,5 +1,5 @@
 from django import forms
-from .models import Propietario, Cuidador, Servicio, Mascota, DetPrestacion, Resena
+from .models import Propietario, Cuidador, Servicio, Mascota, DetPrestacion, Resena, Raza, Especie, TipoServicio
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, UserChangeForm
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
@@ -30,27 +30,44 @@ class frmEdit(UserChangeForm):
     class Meta:
         model=Propietario
         fields=["username","first_name","last_name","email","direccion","telefono","imagen"] 
-        
+
+class frmTipoServicio(forms.ModelForm):
+    class Meta:
+        model=TipoServicio
+        fields=["tipo_servicio"]        
         
 class frmServicio(forms.ModelForm):
     class Meta:
         model=Servicio
         fields=["tipo_servicio","descripcion","precio"]
+
+class frmEspecie(forms.ModelForm):
+    class Meta:
+        model=Especie
+        fields=["especie_mascota"]
         
+class frmRaza(forms.ModelForm):
+    class Meta:
+        model=Raza
+        fields=["id_especie","raza_mascota"]
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs) 
+        self.fields['id_especie'].label = 'Especie'       
         
 class frmMascota(forms.ModelForm):
     class Meta:
         model=Mascota
-        fields=["nombre_mascota","tipo_mascota","tamaño_mascota","raza_mascota", "imagen"]
+        fields=["id_raza","nombre_mascota","peso","pelaje","observaciones", "imagen"]
         
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
         self.helper.form_method = 'post'
         self.helper.add_input(Submit('submit', 'Guardar'))
+        self.fields['id_raza'].label = 'Raza'
         
         # Asegúrate de que los campos que deseas que sean opcionales tengan required=False
-        self.fields['raza_mascota'].required = False
         self.fields['imagen'].required = False
         
         

@@ -49,13 +49,12 @@
             </div>
             <div class="card overlay-card position-absolute bottom-0 start-0">
                 <div class="card-body">
-                    <a href="{% url 'conversation' username=prestacion.id_cuidador.propietario.username %}" class="btn btn-primary"><i class="material-icons">send</i>
+                    <a href="{% url 'conversation' username=prestacion.id_cuidador.propietario.username %}" class="btn btn-primary"><i class="material-icons">message</i>
                     </a>
                 </div>
             </div>
         </div>
             <div class="mx-auto text-center">
-                <p>Fecha de inicio: {{ prestacion.fecha_prestacion }}</p>
                 <p>Valor total: {{ prestacion.valor_total }}</p>
                 <p>Estado: {{ prestacion.estado }}</p>
                 <p>Servicio: {{ prestacion.id_servicio }}</p>

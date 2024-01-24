@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Propietario, Cuidador, Servicio, Mascota, DetPrestacion, Mensaje, Resena
-from .forms import frmRegistro, frmLogin, frmCuidador, frmEdit, frmServicio, frmMascota, frmDetPrestacion, frmResena
+from .forms import frmRegistro, frmLogin, frmCuidador, frmEdit, frmServicio, frmMascota, frmDetPrestacion, frmResena, frmEspecie, frmRaza, frmTipoServicio
 from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -12,9 +12,7 @@ from django.http import HttpResponseBadRequest
 def index(request):
     default_page = 1
     page = request.GET.get('page', default_page)
-
-    obtener = Servicio.objects.all().order_by('-id_servicio')
-    
+    obtener = Servicio.objects.filter(es_activo=True).order_by('-id_servicio')
     query = request.GET.get('q')  # Obtener el término de búsqueda del request
     
     if query:
@@ -128,7 +126,12 @@ def perfil(request):
     else:
         form_mascota = frmMascota()
         
-    mascotas_usuario = Mascota.objects.filter(propietario=request.user)
+    # Obtén todas las mascotas del usuario, activas o no
+    todas_mascotas_usuario = Mascota.objects.filter(propietario=request.user)
+    # Separa las mascotas activas y desactivadas
+    mascotas_activas = todas_mascotas_usuario.filter(es_activo=True)
+    mascotas_desactivadas = todas_mascotas_usuario.filter(es_activo=False)
+    
     check = Propietario.objects.filter(pk=request.user.id)
     if len(check) > 0:
         data = Propietario.objects.get(pk=request.user.id)
@@ -137,8 +140,11 @@ def perfil(request):
         if data.es_cuidador:
             cuidador_data = Cuidador.objects.filter(propietario=data).first()
             servicios = Servicio.objects.filter(cuidador=cuidador_data)
+            servicios_activos = servicios.filter(es_activo=True)
+            servicios_desactivados = servicios.filter(es_activo=False)
             context["cuidador_data"] = cuidador_data
-            context["servicios"] = servicios
+            context["servicios_activos"] = servicios_activos
+            context["servicios_desactivados"] = servicios_desactivados
             context["cuidador_data"] = cuidador_data
             # Obtener reseñas asociadas al cuidador
             reseñas_cuidador = Resena.objects.filter(cuidador=cuidador_data).order_by('-fecha_creacion')
@@ -152,7 +158,9 @@ def perfil(request):
             if cuidador_data:
                 if 'cambiar_disponibilidad' in request.POST:
                     if cuidador_data.disponibilidad == 'Disponible':
-                        cuidador_data.disponibilidad = 'No Disponible'
+                        cuidador_data.disponibilidad = 'Ocupado'
+                    elif cuidador_data.disponibilidad == 'Ocupado':
+                        cuidador_data.disponibilidad = 'En un trabajo'
                     else:
                         cuidador_data.disponibilidad = 'Disponible'
                     cuidador_data.save()
@@ -160,7 +168,8 @@ def perfil(request):
             
     else:
         data = None
-    context["mascotas_usuario"] = mascotas_usuario 
+    context["mascotas_activas"] = mascotas_activas
+    context["mascotas_desactivadas"] = mascotas_desactivadas
     context["form_mascota"] = form_mascota
     
     
@@ -168,6 +177,19 @@ def perfil(request):
     return render(request, "app_mascotas/perfil.html", context)
 
 
+def desactivar_mascota(request, id_mascota):
+    mascota = get_object_or_404(Mascota, id_mascota=id_mascota, propietario=request.user)
+    mascota.es_activo = False
+    mascota.save()
+    messages.success(request, 'Mascota desactivada!')
+    return redirect('perfil')
+
+def activar_mascota(request, id_mascota):
+    mascota = get_object_or_404(Mascota, id_mascota=id_mascota, propietario=request.user)
+    mascota.es_activo = True
+    mascota.save()
+    messages.success(request, 'Mascota activada!')
+    return redirect('perfil')
 
 
 @login_required
@@ -201,7 +223,22 @@ def editar_perfil(request,id):
         
     return render(request,"app_mascotas/editar_perfil.html",contexto)
 
+@login_required
+def tipo_servicio(request):
+    form=frmTipoServicio(request.POST or None)
+    contexto={
+        "form":form
+    }
+    if request.method=="POST":
+        form=frmTipoServicio(data=request.POST,files=request.FILES)
+        if form.is_valid():
+           tipo_servicio = form.save(commit=False)
+           tipo_servicio.save()
+           messages.success(request,"Tipo de servicio agregado!")
 
+           return redirect(to="perfil")
+       
+    return render(request,"app_mascotas/tipo_servicio.html",contexto)
 
 @login_required
 def servicio(request):
@@ -222,15 +259,64 @@ def servicio(request):
        
     return render(request,"app_mascotas/servicio.html",contexto)
 
+def desactivar_servicio(request, id_servicio):
+    servicio = get_object_or_404(Servicio, id_servicio=id_servicio, cuidador__propietario=request.user)
+    servicio.es_activo = False
+    servicio.save()
+    messages.success(request, 'Servicio desactivado!')
+    return redirect('perfil')
+
+def activar_servicio(request, id_servicio):
+    servicio = get_object_or_404(Servicio, id_servicio=id_servicio, cuidador__propietario=request.user)
+    servicio.es_activo = True
+    servicio.save()
+    messages.success(request, 'Servicio activado!')
+    return redirect('perfil')
+
+@login_required
+def especie(request):
+    form=frmEspecie(request.POST or None)
+    contexto={
+        "form":form
+    }
+    if request.method=="POST":
+        form=frmEspecie(data=request.POST,files=request.FILES)
+        if form.is_valid():
+           especie = form.save(commit=False)
+           especie.save()
+           messages.success(request,"Especie de la mascota agregado!")
+
+           return redirect(to="raza")
+       
+    return render(request,"app_mascotas/especie.html",contexto)
+
+
+@login_required
+def raza(request):
+    form=frmRaza(request.POST or None)
+    contexto={
+        "form":form
+    }
+    if request.method=="POST":
+        form=frmRaza(data=request.POST,files=request.FILES)
+        if form.is_valid():
+           raza = form.save(commit=False)
+           raza.save()
+           messages.success(request,"Raza de la mascota agregado!")
+
+           return redirect(to="perfil")
+       
+    return render(request,"app_mascotas/raza.html",contexto)
 
 
 def perfil_servicio(request, id_servicio):
     servicio = get_object_or_404(Servicio, id_servicio=id_servicio)
     cuidador = servicio.cuidador
     propietario = cuidador.propietario
-    obtener = Servicio.objects.filter(cuidador=cuidador)
+    obtener = Servicio.objects.filter(cuidador=cuidador, es_activo=True)
     destinatario = Propietario.objects.exclude(pk=request.user.id)
-    mascotas_usuario = Mascota.objects.filter(propietario=propietario)
+    todas_mascotas_usuario = Mascota.objects.filter(propietario=propietario)
+    mascotas_activas = todas_mascotas_usuario.filter(es_activo=True)
     user = request.user
     resenas = Resena.objects.filter(cuidador=cuidador).order_by('-fecha_creacion')
     has_left_review = False
@@ -260,7 +346,7 @@ def perfil_servicio(request, id_servicio):
         'cuidador': cuidador,
         'propietario': propietario,
         'obtener': obtener,
-        'mascotas_usuario': mascotas_usuario,
+        'mascotas_activas': mascotas_activas,
         'destinatario': destinatario,
         'user': user,
         'resenas': reseñas_paginadas,
@@ -275,9 +361,20 @@ def eliminar_resena(request, id):
 
     # Asegúrate de que solo el autor de la reseña puede eliminarla
     if resena.autor == request.user:
-        resena.delete()
-        messages.success(request,"Comentario Eliminado!")
-        return redirect('perfil_servicio', id_servicio=resena.cuidador.id_cuidador)
+        # Obtén el cuidador asociado a la reseña
+        cuidador = resena.cuidador
+        # Obtén el servicio asociado al cuidador
+        servicio = Servicio.objects.filter(cuidador=cuidador).first()
+
+        if servicio:
+            id_servicio = servicio.id_servicio
+            resena.delete()
+            messages.success(request, "Comentario Eliminado!")
+            return redirect('perfil_servicio', id_servicio=id_servicio)
+        else:
+            # Manejar el caso en que no se encuentre un servicio asociado
+            messages.warning(request, "No se encontró un servicio asociado a la reseña.")
+            return redirect('perfil_servicio', id_servicio=resena.cuidador.id_cuidador)
 
 
 @login_required
@@ -342,13 +439,14 @@ def modificar_mascota(request,id_mascota):
         if form.is_valid():
             search=Mascota.objects.get(pk=prod.id_mascota)
             datos_form=form.cleaned_data
+            search.id_raza=datos_form.get("id_raza")
             search.nombre_mascota=datos_form.get("nombre_mascota")
-            search.tipo_mascota=datos_form.get("tipo_mascota")
-            search.tamaño_mascota=datos_form.get("tamaño_mascota")
-            search.raza_mascota=datos_form.get("raza_mascota")
+            search.peso=datos_form.get("peso")
+            search.pelaje=datos_form.get("pelaje")
+            search.observaciones=datos_form.get("observaciones")
             search.imagen=datos_form.get("imagen")
             search.save()
-            messages.success(request,"Servicio Modificado!")
+            messages.success(request,"Mascota Modificada!")
             return redirect(to="perfil")
         contexto["form"]=form
         

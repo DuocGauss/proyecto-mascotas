@@ -10,41 +10,81 @@ class Propietario(AbstractUser):
     # Agregar un campo de rol
     rut = models.CharField(max_length=20, unique=True, default="")
     direccion = models.CharField(max_length=255, default="")
-    imagen = models.ImageField(upload_to="imgprod", null=True)
+    imagen = models.ImageField(upload_to="imgprod", null=True, blank=True)
     es_cuidador = models.BooleanField(default=False)
     telefono = models.CharField(max_length=15, blank=True, null=True)
     
     
 class Cuidador(models.Model):
+    ESPECIALIZACION = [
+        ('Perros', 'Perros'),
+        ('Perros pequeños', 'Perros pequeños'),
+        ('Perros grandes', 'Perros grandes'),
+        ('Gatos', 'Gatos'),
+        ('Perros y Gatos', 'Perros y Gatos'),
+    ]
+    
     propietario = models.OneToOneField(Propietario, on_delete=models.CASCADE)
     id_cuidador = models.AutoField(primary_key=True)
-    especializacion = models.CharField(max_length=50 ,default="")
+    especializacion = models.CharField(max_length=50 ,default="", choices=ESPECIALIZACION)
     experiencia = models.TextField(default="")
     disponibilidad = models.CharField(max_length=50, default="Disponible")
     
     def __str__(self):
         return f"{self.id_cuidador} - {self.propietario.username} - {self.especializacion} - {self.disponibilidad}"
+
+
+class TipoServicio(models.Model):
+    id_tipo_servicio = models.AutoField(primary_key=True)
+    tipo_servicio = models.CharField(max_length=100)
     
+    def __str__(self):
+        return self.tipo_servicio    
     
 class Servicio(models.Model):
     id_servicio = models.AutoField(primary_key=True)
-    tipo_servicio = models.CharField(max_length=100)
     descripcion = models.TextField()
     precio = models.IntegerField()
+    es_activo = models.BooleanField(default=True)
     cuidador = models.ForeignKey(Cuidador, on_delete=models.CASCADE)
+    tipo_servicio = models.ForeignKey(TipoServicio, on_delete=models.CASCADE)
     
     def __str__(self):
         return f"{self.id_servicio} -{self.tipo_servicio} - {self.cuidador.propietario.username}"
+
+class Especie(models.Model):
+    id_especie = models.AutoField(primary_key=True)
+    especie_mascota = models.CharField(max_length=100)
     
+    def __str__(self):
+        return self.especie_mascota 
+
+class Raza(models.Model):
+    id_raza = models.AutoField(primary_key=True)
+    raza_mascota = models.CharField(max_length=100)
+    id_especie = models.ForeignKey(Especie, on_delete=models.CASCADE)
     
-class Mascota(models.Model):
+    def __str__(self):
+        return f"{self.raza_mascota} - {self.id_especie}"   
+    
+class Mascota(models.Model):  
+    PELAJE = [
+        ('Duro', 'Duro'),
+        ('Rizado', 'Rizado'),
+        ('Corto', 'Corto'),
+        ('Largo', 'Largo'),
+        ('Sin pelo', 'Sin pelo'),
+    ]
+    
     id_mascota = models.AutoField(primary_key=True)
     nombre_mascota = models.CharField(max_length=100)
-    tipo_mascota = models.CharField(max_length=50)
-    tamaño_mascota = models.CharField(max_length=50)
-    raza_mascota = models.CharField(max_length=50, blank=True, null=True)
+    peso = models.DecimalField(max_digits=5, decimal_places=2)
+    pelaje = models.CharField(max_length=30, choices=PELAJE)
+    observaciones = models.TextField(null=True, blank=True)
+    es_activo = models.BooleanField(default=True)
     imagen = models.ImageField(upload_to="imgprod", null=True)
     propietario = models.ForeignKey(Propietario, on_delete=models.CASCADE, related_name='mascotas')
+    id_raza = models.ForeignKey(Raza, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.nombre_mascota

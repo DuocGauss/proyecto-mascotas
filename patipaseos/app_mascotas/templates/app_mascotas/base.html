@@ -85,7 +85,7 @@
                             <a href="{% url "prestacion" %}">Solicitudes<i class="material-icons left">pets</i></a>
                         </li>
                     {% endif %}
-                        <li><a href="{% url 'inbox' %}"><i class="material-icons left">message</i>Mensajes<span class="new badge">{{ count_notifications }}</span></a></li>
+                        <li><a href="{% url 'inbox' %}"><i class="material-icons left">message</i>Mensajes<span class="new badge">{{ message.unread }}</span></a></li>
                         <li><a href="{% url "perfil" %}"><i class="material-icons left">person</i>Perfil</a></li>
                         <li>
                             <a href="#" onclick="confirmLogout()" ><i class="material-icons left">exit_to_app</i>Salir</a>

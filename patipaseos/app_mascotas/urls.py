@@ -27,4 +27,11 @@ urlpatterns = [
     path('send_message/<username>/', views.send_message, name='send_message'),
     path('eliminar_resena/<int:id>',views.eliminar_resena,name="eliminar_resena"),
     path('editar_cuidador/<int:id_cuidador>',views.editar_cuidador,name="editar_cuidador"),
+    path('especie/',views.especie,name="especie"),
+    path('raza/',views.raza,name="raza"),
+    path('tipo_servicio/',views.tipo_servicio,name="tipo_servicio"),
+    path('activar_mascota/<int:id_mascota>/', views.activar_mascota, name='activar_mascota'),
+    path('desactivar_mascota/<int:id_mascota>/', views.desactivar_mascota, name='desactivar_mascota'),
+    path('activar_servicio/<int:id_servicio>/', views.activar_servicio, name='activar_servicio'),
+    path('desactivar_servicio/<int:id_servicio>/', views.desactivar_servicio, name='desactivar_servicio'),
 ]
