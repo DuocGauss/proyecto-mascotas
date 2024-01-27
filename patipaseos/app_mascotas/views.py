@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q
 from django.http import HttpResponseBadRequest
+from django.db import connection
 
 # Create your views here.
 def index(request):
@@ -18,7 +19,7 @@ def index(request):
     if query:
         # Filtrar mantenciones en función de la búsqueda
         obtener = obtener.filter(
-            Q(tipo_servicio__icontains=query) |
+            Q(tipo_servicio__tipo_servicio__icontains=query) |
             Q(descripcion__icontains=query) |
             Q(precio__icontains=query) |
             Q(cuidador__especializacion__icontains=query) |
@@ -125,7 +126,7 @@ def perfil(request):
             return redirect('perfil')
     else:
         form_mascota = frmMascota()
-        
+    
     # Obtén todas las mascotas del usuario, activas o no
     todas_mascotas_usuario = Mascota.objects.filter(propietario=request.user)
     # Separa las mascotas activas y desactivadas
@@ -147,7 +148,7 @@ def perfil(request):
             context["servicios_desactivados"] = servicios_desactivados
             context["cuidador_data"] = cuidador_data
             # Obtener reseñas asociadas al cuidador
-            reseñas_cuidador = Resena.objects.filter(cuidador=cuidador_data).order_by('-fecha_creacion')
+            reseñas_cuidador = obtener_resenas_por_propietario_cuidador(request.user.id)
             # Paginación para las reseñas
             paginator = Paginator(reseñas_cuidador, 3)
             page_number = request.GET.get('page')
@@ -313,11 +314,16 @@ def perfil_servicio(request, id_servicio):
     servicio = get_object_or_404(Servicio, id_servicio=id_servicio)
     cuidador = servicio.cuidador
     propietario = cuidador.propietario
-    prestaciones_activas = DetPrestacion.objects.filter(id_servicio=servicio, estado__in=['Activo', 'Finalizado'], id_propietario=request.user)
-    obtener = Servicio.objects.filter(cuidador=cuidador, es_activo=True)
+    prestaciones_activas = None
+    if request.user.is_authenticated:
+        user_id = request.user.id
+        prestaciones_activas = DetPrestacion.objects.filter(id_servicio=servicio, estado__in=['Activo', 'Finalizado'], id_propietario=user_id)
+    else:
+        prestaciones_activas = DetPrestacion.objects.filter(id_servicio=servicio, estado__in=['Activo', 'Finalizado'])
+    obtener = obtener_servicios_activos(propietario.id) if propietario else []
     destinatario = Propietario.objects.exclude(pk=request.user.id)
     todas_mascotas_usuario = Mascota.objects.filter(propietario=propietario)
-    mascotas_activas = todas_mascotas_usuario.filter(es_activo=True)
+    mascotas_activas = obtener_mascotas_activas(propietario.id) if propietario else []
     user = request.user
     resenas = Resena.objects.filter(cuidador=cuidador).order_by('-fecha_creacion')
     has_left_review = False
@@ -449,7 +455,6 @@ def modificar_mascota(request,id_mascota):
             search.peso=datos_form.get("peso")
             search.pelaje=datos_form.get("pelaje")
             search.observaciones=datos_form.get("observaciones")
-            search.imagen=datos_form.get("imagen")
             search.save()
             messages.success(request,"Mascota Modificada!")
             return redirect(to="perfil")
@@ -539,7 +544,7 @@ def prestacion_cuidador(request):
     except Cuidador.DoesNotExist:
         cuidador = None
     # Obtener todas las prestaciones relacionadas con el cuidador si existe
-    prestaciones_cuidador = DetPrestacion.objects.filter(id_cuidador=cuidador) if cuidador else []
+    prestaciones_cuidador = DetPrestacion.objects.filter(id_cuidador=cuidador).order_by('-fecha_prestacion') if cuidador else []
     
     if request.method == 'POST':
         # Obtener el ID de la prestación que se quiere cambiar
@@ -657,3 +662,31 @@ def editar_cuidador(request,id_cuidador):
         contexto["form"]=form
         
     return render(request,"app_mascotas/editar_cuidador.html",contexto)
+
+
+
+def dictfetchall(cursor):
+    columns = [col[0] for col in cursor.description]
+    return [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+
+def obtener_mascotas_activas(propietario_id):
+    with connection.cursor() as cursor:
+        cursor.callproc('ObtenerMascotasActivasConDetalle', [propietario_id])
+        mascotas_activas = dictfetchall(cursor)
+    return mascotas_activas
+
+def obtener_servicios_activos(propietario_id):
+    with connection.cursor() as cursor:
+        cursor.callproc('ObtenerServiciosActivosConDetalle', [propietario_id])
+        servicios_activos = dictfetchall(cursor)
+
+    return servicios_activos
+
+
+def obtener_resenas_por_propietario_cuidador(propietario_id):
+    with connection.cursor() as cursor:
+        cursor.callproc('ObtenerResenasPorPropietarioCuidador', [propietario_id])
+        resenas_por_cuidador = dictfetchall(cursor)
+
+    return resenas_por_cuidador

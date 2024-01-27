@@ -99,14 +99,10 @@
                     </div>
                     <div class="card-body">
                         <!-- Agrega un espacio para la foto de la mascota -->
-                        {% if mascota.imagen %}
-                            <img src="{{ mascota.imagen.url }}" class="img-fluid rounded" style="max-height: 150px;" alt="Foto de la Mascota">
-                        {% else %}
-                            <img src="{% static 'app_mascotas/img/no_pet.png' %}" class="img-fluid rounded" style="max-height: 150px;" alt="Foto de la Mascota por Defecto">
-                        {% endif %}
+                        <img src="{% static 'app_mascotas/img/no_pet.png' %}" class="img-fluid rounded" style="max-height: 150px;" alt="Foto de la Mascota por Defecto">
                         
                         <h5 class="card-title">{{ mascota.nombre_mascota }}</h5>
-                        <p class="card-text"><strong>Raza:</strong> {{ mascota.id_raza }}</p>
+                        <p class="card-text"><strong>Raza:</strong> {{ mascota.raza_mascota }} - {{mascota.especie_mascota}}</p>
                         <p class="card-text"><strong>Peso:</strong> {{ mascota.peso }}</p>
                         <p class="card-text"><strong>Pelaje:</strong> {{ mascota.pelaje }}</p>
                         <p class="card-text"><strong>Observaciones:</strong> {{ mascota.observaciones }}</p>

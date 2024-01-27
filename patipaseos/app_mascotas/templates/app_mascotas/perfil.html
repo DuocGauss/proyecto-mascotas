@@ -226,11 +226,7 @@
                     </div>
                     <div class="card-body">
                         <!-- Agrega un espacio para la foto de la mascota -->
-                        {% if mascota.imagen %}
-                            <img src="{{ mascota.imagen.url }}" class="img-fluid rounded" style="max-height: 150px;" alt="Foto de la Mascota">
-                        {% else %}
-                            <img src="{% static 'app_mascotas/img/no_pet.png' %}" class="img-fluid rounded" style="max-height: 150px;" alt="Foto de la Mascota por Defecto">
-                        {% endif %}
+                        <img src="{% static 'app_mascotas/img/no_pet.png' %}" class="img-fluid rounded" style="max-height: 150px;" alt="Foto de la Mascota por Defecto">
                         
                         <h5 class="card-title">{{ mascota.nombre_mascota }}</h5>
                         <p class="card-text"><strong>Raza:</strong> {{ mascota.id_raza }}</p>
@@ -371,13 +367,13 @@
         {% for resena in reseñas_cuidador %}
             <li class="collection-item avatar">
                 {% if resena.autor.imagen %}
-                    <img src="{{ resena.autor.imagen.url }}" class="circle responsive-img">
+                    <img src="{{ resena.autor_imagen.url }}" class="circle responsive-img">
                 {% else %}
                     <img src="{% static 'img/no_avatar.jpg' %}" class="circle responsive-img">
                 {% endif %}
                 <span style="font-weight: bold; font-size: 20px" class="title">{{ resena.autor.first_name }} {{ resena.autor.last_name }}</span>
                 <span class="title secondary-content">{{ resena.fecha_creacion }}</span>
-                <p>@{{ resena.autor.username }}</p>
+                <p>@{{ resena.autor_username }}</p>
                 <br>
                 {{ resena.texto }}
                 <br>

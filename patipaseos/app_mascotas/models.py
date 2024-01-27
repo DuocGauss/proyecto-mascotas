@@ -27,7 +27,7 @@ class Cuidador(models.Model):
     propietario = models.OneToOneField(Propietario, on_delete=models.CASCADE)
     id_cuidador = models.AutoField(primary_key=True)
     especializacion = models.CharField(max_length=50 ,default="", choices=ESPECIALIZACION)
-    experiencia = models.TextField(default="")
+    experiencia = models.TextField(default="", null=True, blank=True)
     disponibilidad = models.CharField(max_length=50, default="Disponible")
     
     def __str__(self):
@@ -43,8 +43,8 @@ class TipoServicio(models.Model):
     
 class Servicio(models.Model):
     id_servicio = models.AutoField(primary_key=True)
-    descripcion = models.TextField()
-    precio = models.IntegerField()
+    descripcion = models.TextField(null=True, blank=True)
+    precio = models.IntegerField(null=True, blank=True)
     es_activo = models.BooleanField(default=True)
     cuidador = models.ForeignKey(Cuidador, on_delete=models.CASCADE)
     tipo_servicio = models.ForeignKey(TipoServicio, on_delete=models.CASCADE)
@@ -82,7 +82,6 @@ class Mascota(models.Model):
     pelaje = models.CharField(max_length=30, choices=PELAJE)
     observaciones = models.TextField(null=True, blank=True)
     es_activo = models.BooleanField(default=True)
-    imagen = models.ImageField(upload_to="imgprod", null=True)
     propietario = models.ForeignKey(Propietario, on_delete=models.CASCADE, related_name='mascotas')
     id_raza = models.ForeignKey(Raza, on_delete=models.CASCADE)
 

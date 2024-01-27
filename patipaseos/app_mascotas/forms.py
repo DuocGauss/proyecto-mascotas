@@ -40,6 +40,9 @@ class frmServicio(forms.ModelForm):
     class Meta:
         model=Servicio
         fields=["tipo_servicio","descripcion","precio"]
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs) 
+        self.fields['precio'].label = 'Valor por hora'
 
 class frmEspecie(forms.ModelForm):
     class Meta:
@@ -58,7 +61,7 @@ class frmRaza(forms.ModelForm):
 class frmMascota(forms.ModelForm):
     class Meta:
         model=Mascota
-        fields=["id_raza","nombre_mascota","peso","pelaje","observaciones", "imagen"]
+        fields=["id_raza","nombre_mascota","peso","pelaje","observaciones"]
         
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -68,8 +71,6 @@ class frmMascota(forms.ModelForm):
         self.fields['id_raza'].label = 'Raza'
         self.fields['peso'].label = 'Peso en kilogramos'
         
-        # Asegúrate de que los campos que deseas que sean opcionales tengan required=False
-        self.fields['imagen'].required = False
         
         
 
@@ -87,6 +88,8 @@ class frmDetPrestacion(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # Filtrar las mascotas del usuario actual
         self.fields['id_mascota'].queryset = Mascota.objects.filter(propietario=user)
+        self.fields['valor_total'].label = 'Valor por hora'
+        self.fields['id_mascota'].label = 'Mascota'
 
         # Asignar el precio del servicio al valor_total
         if servicio_precio is not None:
